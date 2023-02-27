@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
-@Table(name = "REQUESTS")
+@Table(name = "ENDPOINT_HITS")
 @Setter
 @Getter
 public class EndpointHit {
