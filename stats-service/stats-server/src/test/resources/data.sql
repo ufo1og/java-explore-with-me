@@ -1,4 +1,4 @@
-DELETE FROM ENDPOINT_HITS;
+-- DELETE FROM ENDPOINT_HITS;
 
 INSERT INTO ENDPOINT_HITS(app, uri, ip, timestamp)
 VALUES ('main-service', '/events/1', '127.0.0.1', now() - interval '1' day),
