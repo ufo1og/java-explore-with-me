@@ -25,7 +25,7 @@ public class StatsServerRepositoryTest {
     @DisplayName("Test getting all hits for endpoints '/events/{1, 2}'")
     public void test1() {
         List<ViewStats> hits = repository.countHits(LocalDateTime.now().minusDays(10), LocalDateTime.now().plusDays(1),
-                new String[]{"/events/1", "/events/2"});
+                List.of("/events/1", "/events/2"));
 
         assertThat(hits.size(), is(2));
         assertThat(hits.get(0).getHits(), is(5L));
@@ -36,7 +36,7 @@ public class StatsServerRepositoryTest {
     @DisplayName("Test getting unique hits for endpoints '/events/{1, 2}'")
     public void test2() {
         List<ViewStats> hits = repository.countUniqueHits(LocalDateTime.now().minusDays(10), LocalDateTime.now().plusDays(1),
-                new String[]{"/events/1", "/events/2"});
+                List.of("/events/1", "/events/2"));
 
         assertThat(hits.size(), is(2));
         assertThat(hits.get(0).getHits(), is(3L));
@@ -47,7 +47,7 @@ public class StatsServerRepositoryTest {
     @DisplayName("Test getting all hits for endpoint '/events/1'")
     public void test3() {
         List<ViewStats> hits = repository.countHits(LocalDateTime.now().minusDays(10), LocalDateTime.now().plusDays(1),
-                new String[]{"/events/1"});
+                List.of("/events/1"));
 
         assertThat(hits.size(), is(1));
         assertThat(hits.get(0).getHits(), is(5L));
@@ -58,7 +58,7 @@ public class StatsServerRepositoryTest {
     public void test4() {
         List<ViewStats> hits = repository.countHits(LocalDateTime.now().minusDays(5).minusHours(1),
                 LocalDateTime.now().minusDays(4),
-                new String[]{"/events/1"});
+                List.of("/events/1"));
 
         assertThat(hits.size(), is(1));
         assertThat(hits.get(0).getHits(), is(2L));

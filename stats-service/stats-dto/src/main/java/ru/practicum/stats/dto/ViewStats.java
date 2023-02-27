@@ -16,6 +16,9 @@ public class ViewStats {
         this.hits = hits;
     }
 
+    public ViewStats() {
+    }
+
     @Override
     public String toString() {
         return "EndpointHitDto{" +

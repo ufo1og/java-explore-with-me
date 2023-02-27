@@ -19,14 +19,14 @@ public class StatsServerService {
     private final StatsServerRepository repository;
 
 
-    public ResponseEntity saveEndpointRequest(EndpointHitDto requestDto) {
+    public ResponseEntity<Object> saveEndpointRequest(EndpointHitDto requestDto) {
         EndpointHit endpointHit = EndpointRequestConverter.fromDto(requestDto);
         repository.save(endpointHit);
-        return new ResponseEntity(HttpStatus.CREATED);
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-    public ResponseEntity<List<ViewStats>> findEndpointRequests(LocalDateTime startDate, LocalDateTime endDate,
-                                                                String[] uris, boolean unique) {
+    public ResponseEntity<Object> findEndpointRequests(LocalDateTime startDate, LocalDateTime endDate,
+                                                                List<String> uris, boolean unique) {
         List<ViewStats> hits;
         if (unique) {
             hits = repository.countUniqueHits(startDate, endDate, uris);

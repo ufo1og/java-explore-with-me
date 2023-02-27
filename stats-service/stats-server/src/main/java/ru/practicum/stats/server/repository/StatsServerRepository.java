@@ -14,12 +14,12 @@ public interface StatsServerRepository extends JpaRepository<EndpointHit, Long> 
             " WHERE e.timestamp BETWEEN ?1 and ?2 and e.uri in ?3" +
             " GROUP BY e.app, e.uri" +
             " ORDER BY COUNT(e.ip) DESC")
-    List<ViewStats> countHits(LocalDateTime start, LocalDateTime end, String[] uris);
+    List<ViewStats> countHits(LocalDateTime start, LocalDateTime end, List<String> uris);
 
     @Query("SELECT new ru.practicum.stats.dto.ViewStats(e.app, e.uri, COUNT(DISTINCT e.ip))" +
             " FROM EndpointHit e" +
             " WHERE e.timestamp BETWEEN ?1 and ?2 and e.uri in ?3" +
             " GROUP BY e.app, e.uri" +
             " ORDER BY COUNT(e.ip) DESC")
-    List<ViewStats> countUniqueHits(LocalDateTime start, LocalDateTime end, String[] uris);
+    List<ViewStats> countUniqueHits(LocalDateTime start, LocalDateTime end, List<String> uris);
 }
