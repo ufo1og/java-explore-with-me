@@ -1,15 +1,43 @@
 version: '3.1'
 services:
   stats-server:
+    build: stats-service/stats-server
+    container_name: stats-server
     ports:
       - "9090:9090"
+    depends_on:
+      - stats-db
+    environment:
+      - STATS_SERVER_DB_URL=jdbc:postgresql://stats-db:5432/stats-server-db
+      - STATS_SERVER_DB_USERNAME=stats-server
+      - STATS_SERVER_DB_PASSWORD=0989
 
   stats-db:
     image: postgres:14-alpine
+    container_name: stats-server-db
+    environment:
+      - POSTGRES_DB=stats-server-db
+      - POSTGRES_USER=stats-server
+      - POSTGRES_PASSWORD=0989
 
   ewm-service:
+    build: main-service
+    container_name: ewm-service
     ports:
       - "8080:8080"
+    depends_on:
+      - stats-server
+      - ewm-db
+    environment:
+      - EWM_SERVICE_DB_URL=jdbc:postgresql://ewm-db:5432/ewm-db
+      - EWM_SERVICE_DB_USERNAME=ewm
+      - EWM_SERVICE_DB_PASSWORD=0989
+      - STATS_SERVER_URL=stats-server
 
   ewm-db:
     image: postgres:14-alpine
+    container_name: ewm-db
+    environment:
+      - POSTGRES_DB=ewm-db
+      - POSTGRES_USER=ewm
+      - POSTGRES_PASSWORD=0989
