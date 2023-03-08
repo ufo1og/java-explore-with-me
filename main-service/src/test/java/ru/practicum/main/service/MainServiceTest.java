@@ -1,9 +1,7 @@
 package ru.practicum.main.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -29,6 +27,7 @@ import static ru.practicum.stats.dto.ConstantValues.TIMESTAMP_FORMATTER;
 @SpringBootTest
 @AutoConfigureMockMvc
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class MainServiceTest {
     @Autowired
     private ObjectMapper mapper;
@@ -217,7 +216,7 @@ public class MainServiceTest {
                 new NewCategoryDto("Chatting")
         );
 
-        for (int i = 1; i <= categoryDtos.size() ; i++) {
+        for (int i = 1; i <= categoryDtos.size(); i++) {
             NewCategoryDto categoryDto = categoryDtos.get(i - 1);
             mvc.perform(post("/admin/categories")
                             .content(mapper.writeValueAsString(categoryDto))
@@ -272,9 +271,52 @@ public class MainServiceTest {
     }
 
     @Test
+    @Order(8)
+    @DisplayName("Updating Category")
+    public void test80() throws Exception {
+        NewCategoryDto newCategoryDto = new NewCategoryDto("Updated");
+        mvc.perform(patch("/admin/categories/6")
+                        .content(mapper.writeValueAsString(newCategoryDto))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name", is(newCategoryDto.getName())));
+    }
+
+    @Test
+    @Order(8)
+    @DisplayName("Updating Category that not exists")
+    public void test81() throws Exception {
+        NewCategoryDto newCategoryDto = new NewCategoryDto("Updated");
+        mvc.perform(patch("/admin/categories/777")
+                        .content(mapper.writeValueAsString(newCategoryDto))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     @Order(9)
-    @DisplayName("Creating 5 Events")
+    @DisplayName("Deleting Category")
     public void test90() throws Exception {
+        mvc.perform(delete("/admin/categories/6"))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @Order(9)
+    @DisplayName("Deleting Category that not exists")
+    public void test91() throws Exception {
+        mvc.perform(delete("/admin/categories/777"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @Order(10)
+    @DisplayName("Creating 5 Events")
+    public void test100() throws Exception {
         for (long i = 1L; i <= 5L; i++) {
             String title = "event" + i;
             String annotation = "This is annotation of event" + i;
