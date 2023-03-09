@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.main.service.dto.NewUserRequest;
-import ru.practicum.main.service.service.AdminUserService;
+import ru.practicum.main.service.service.adm.AdminUserService;
 
 import javax.validation.Valid;
 
@@ -17,15 +17,15 @@ public class AdminUserController {
     @GetMapping
     public ResponseEntity<Object> findUsers(@RequestParam(required = false) long[] ids,
                                             @RequestParam(required = false, defaultValue = "0") int from,
-                                            @RequestParam(required = false, defaultValue = "10") int to) {
+                                            @RequestParam(required = false, defaultValue = "10") int size) {
         if (from < 0) {
             throw new IllegalArgumentException("Parameter 'from' can't be negative");
         }
-        if (to <= 0) {
-            throw new IllegalArgumentException("Parameter 'to' can't be negative or zero");
+        if (size <= 0) {
+            throw new IllegalArgumentException("Parameter 'size' can't be negative or zero");
         }
         if (ids == null) {
-            return adminUserService.findAllUsers(from, to);
+            return adminUserService.findAllUsers(from, size);
         }
         return adminUserService.findUsers(ids);
     }

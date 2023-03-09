@@ -127,11 +127,11 @@ public class MainServiceTest {
 
     @Test
     @Order(3)
-    @DisplayName("Getting all Users with from = 1 and to = 5")
+    @DisplayName("Getting all Users with from = 1 and size = 5")
     public void test31() throws Exception {
         mvc.perform(get("/admin/users")
                         .param("from", "1")
-                        .param("to", "5"))
+                        .param("size", "5"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.size()", is(5)))
                 .andExpect(jsonPath("$[0].id", is(6L), Long.class));
@@ -148,10 +148,10 @@ public class MainServiceTest {
 
     @Test
     @Order(3)
-    @DisplayName("Getting all Users with to = -1")
+    @DisplayName("Getting all Users with size = -1")
     public void test33() throws Exception {
         mvc.perform(get("/admin/users")
-                        .param("to", "-1"))
+                        .param("size", "-1"))
                 .andExpect(status().isBadRequest());
     }
 
@@ -315,8 +315,70 @@ public class MainServiceTest {
 
     @Test
     @Order(10)
-    @DisplayName("Creating 5 Events")
+    @DisplayName("Getting all Categories with default page parameters")
     public void test100() throws Exception {
+        mvc.perform(get("/categories")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()", is(5)));
+    }
+
+    @Test
+    @Order(10)
+    @DisplayName("Getting all Categories with from = 1 and size = 2")
+    public void test101() throws Exception {
+        mvc.perform(get("/categories")
+                        .param("from", "1")
+                        .param("size", "2")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()", is(2)))
+                .andExpect(jsonPath("$[0].name", is("Dance")));
+    }
+
+    @Test
+    @Order(10)
+    @DisplayName("Getting all Categories with from = -1")
+    public void test102() throws Exception {
+        mvc.perform(get("/categories")
+                        .param("from", "-1")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @Order(10)
+    @DisplayName("Getting all Categories with size = -1")
+    public void test103() throws Exception {
+        mvc.perform(get("/categories")
+                        .param("size", "-1")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @Order(10)
+    @DisplayName("Getting Category")
+    public void test104() throws Exception {
+        mvc.perform(get("/categories/1")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(1L), Long.class));
+    }
+
+    @Test
+    @Order(10)
+    @DisplayName("Getting Category")
+    public void test105() throws Exception {
+        mvc.perform(get("/categories/777")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @Order(999)
+    @DisplayName("Creating 5 Events")
+    public void test999() throws Exception {
         for (long i = 1L; i <= 5L; i++) {
             String title = "event" + i;
             String annotation = "This is annotation of event" + i;

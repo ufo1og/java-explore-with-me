@@ -1,4 +1,4 @@
-package ru.practicum.main.service.service;
+package ru.practicum.main.service.service.adm;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,8 +40,8 @@ public class AdminUserService {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    public ResponseEntity<Object> findAllUsers(int from, int to) {
-        List<User> foundUsers = userRepository.findAll(PageRequest.of(from, to)).toList();
+    public ResponseEntity<Object> findAllUsers(int from, int size) {
+        List<User> foundUsers = userRepository.findAll(PageRequest.of(from, size)).toList();
         return convertUsersToResponseEntity(foundUsers);
     }
 

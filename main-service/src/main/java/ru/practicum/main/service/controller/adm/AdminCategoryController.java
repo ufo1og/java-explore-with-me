@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.main.service.dto.NewCategoryDto;
-import ru.practicum.main.service.service.AdminCategoryService;
+import ru.practicum.main.service.service.adm.AdminCategoryService;
 
 import javax.validation.Valid;
 

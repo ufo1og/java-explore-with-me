@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.main.service.dto.NewEventDto;
-import ru.practicum.main.service.service.PrivateEventService;
+import ru.practicum.main.service.service.priv.PrivateEventService;
 
 import javax.validation.Valid;
 

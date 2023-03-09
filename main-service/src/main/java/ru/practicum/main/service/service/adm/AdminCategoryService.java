@@ -1,4 +1,4 @@
-package ru.practicum.main.service.service;
+package ru.practicum.main.service.service.adm;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +32,7 @@ public class AdminCategoryService {
                 () -> new EntityNotFoundException(String.format("Category with id=%s not found", categoryId)));
         category.setName(categoryRequest.getName());
         Category updatedCategory = categoryRepository.save(category);
+        log.info("Updated Category: {}", updatedCategory);
         CategoryDto categoryDto = CategoryConverter.toCategoryDto(updatedCategory);
         return new ResponseEntity<>(categoryDto, HttpStatus.OK);
     }
@@ -41,6 +42,7 @@ public class AdminCategoryService {
             throw new EntityNotFoundException(String.format("Category with id=%s not found", categoryId));
         }
         categoryRepository.deleteById(categoryId);
+        log.info("Deleted category with id = {}", categoryId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
