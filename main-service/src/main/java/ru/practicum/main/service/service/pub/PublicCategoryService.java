@@ -3,6 +3,7 @@ package ru.practicum.main.service.service.pub;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -21,8 +22,8 @@ import java.util.stream.Collectors;
 public class PublicCategoryService {
     private final CategoryRepository categoryRepository;
 
-    public ResponseEntity<Object> getAllCategories(int from, int size) {
-        List<Category> categories = categoryRepository.findAll(PageRequest.of(from, size)).toList();
+    public ResponseEntity<Object> getAllCategories(Pageable pageable) {
+        List<Category> categories = categoryRepository.findAll(pageable).toList();
         List<CategoryDto> categoryDtos = categories.stream()
                 .map(CategoryConverter::toCategoryDto)
                 .collect(Collectors.toList());

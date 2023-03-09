@@ -3,6 +3,7 @@ package ru.practicum.main.service.service.adm;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -40,8 +41,8 @@ public class AdminUserService {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    public ResponseEntity<Object> findAllUsers(int from, int size) {
-        List<User> foundUsers = userRepository.findAll(PageRequest.of(from, size)).toList();
+    public ResponseEntity<Object> findAllUsers(Pageable pageable) {
+        List<User> foundUsers = userRepository.findAll(pageable).toList();
         return convertUsersToResponseEntity(foundUsers);
     }
 

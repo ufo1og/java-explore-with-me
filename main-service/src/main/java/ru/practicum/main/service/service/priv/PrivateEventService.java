@@ -2,6 +2,8 @@ package ru.practicum.main.service.service.priv;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -14,8 +16,12 @@ import ru.practicum.main.service.repository.CategoryRepository;
 import ru.practicum.main.service.repository.EventRepository;
 import ru.practicum.main.service.repository.UserRepository;
 import ru.practicum.main.service.utils.EventConverter;
+import ru.practicum.stats.client.StatsClient;
 
 import javax.persistence.EntityNotFoundException;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -24,6 +30,19 @@ public class PrivateEventService {
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
+
+//    private final StatsClient statsClient = new StatsClient("");
+
+    public ResponseEntity<Object> getAllEvents(long userId, Pageable pageable) {
+        List<Event> foundEvents = eventRepository.findAllByInitiator(userId, pageable);
+        if (foundEvents.isEmpty()) {
+            return new ResponseEntity<>(Collections.emptyList(), HttpStatus.OK);
+        }
+//        List<EventShortDto> eventShortDtos = foundEvents.stream()
+//                .map(EventConverter::toEventShortDto)
+//                .collect(Collectors.toList());
+        return null;
+    }
 
     public ResponseEntity<Object> createNewEvent(long userId, NewEventDto eventRequest) {
         User initiator = userRepository.findById(userId).orElseThrow(

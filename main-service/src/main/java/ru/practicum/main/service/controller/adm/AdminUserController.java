@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.main.service.dto.NewUserRequest;
 import ru.practicum.main.service.service.adm.AdminUserService;
 
+import static ru.practicum.main.service.utils.PageRequestGetter.getPageRequest;
+
 import javax.validation.Valid;
 
 @RestController
@@ -18,14 +20,8 @@ public class AdminUserController {
     public ResponseEntity<Object> findUsers(@RequestParam(required = false) long[] ids,
                                             @RequestParam(required = false, defaultValue = "0") int from,
                                             @RequestParam(required = false, defaultValue = "10") int size) {
-        if (from < 0) {
-            throw new IllegalArgumentException("Parameter 'from' can't be negative");
-        }
-        if (size <= 0) {
-            throw new IllegalArgumentException("Parameter 'size' can't be negative or zero");
-        }
         if (ids == null) {
-            return adminUserService.findAllUsers(from, size);
+            return adminUserService.findAllUsers(getPageRequest(from, size));
         }
         return adminUserService.findUsers(ids);
     }

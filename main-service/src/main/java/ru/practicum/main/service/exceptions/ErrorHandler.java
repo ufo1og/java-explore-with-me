@@ -24,28 +24,24 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ApiError handleEntityNotFoundException(EntityNotFoundException e) {
-        log.warn(e.getMessage(), e);
         return getApiError(e, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleIllegalArgumentException(IllegalArgumentException e) {
-        log.warn(e.getMessage(), e);
         return getApiError(e, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
-        log.warn(e.getMessage(), e);
         return getApiError(e, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.CONFLICT)
     public ApiError handleConstraintViolationException(ConstraintViolationException e) {
-        log.warn(e.getMessage(), e);
         return getApiError(e, HttpStatus.CONFLICT);
     }
 
@@ -60,6 +56,7 @@ public class ErrorHandler {
     }
 
     private ApiError getApiError(Exception e, HttpStatus status) {
+        log.warn(e.getMessage(), e);
         return new ApiError(
                 Arrays.stream(e.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.toList()),
                 e.getMessage(),
