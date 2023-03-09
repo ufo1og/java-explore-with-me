@@ -1,29 +1,34 @@
-package ru.practicum.main.service.controller.adm;
+package ru.practicum.main.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.practicum.main.service.dto.NewCategoryDto;
+import ru.practicum.main.service.dto.NewEventDto;
 import ru.practicum.main.service.dto.NewUserRequest;
+import ru.practicum.main.service.model.Location;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static ru.practicum.stats.dto.ConstantValues.TIMESTAMP_FORMATTER;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-public class AdminUserControllerTest {
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+public class MainServiceTest {
     @Autowired
     private ObjectMapper mapper;
     @Autowired
@@ -197,5 +202,145 @@ public class AdminUserControllerTest {
         mvc.perform(get("/admin/users"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.size()", is(9)));
+    }
+
+    @Test
+    @Order(6)
+    @DisplayName("Test creating 5 Categories")
+    public void test60() throws Exception {
+        List<NewCategoryDto> categoryDtos = List.of(
+                new NewCategoryDto("Dance"),
+                new NewCategoryDto("Tourism"),
+                new NewCategoryDto("Art"),
+                new NewCategoryDto("History"),
+                new NewCategoryDto("Chatting")
+        );
+
+        for (int i = 1; i <= categoryDtos.size(); i++) {
+            NewCategoryDto categoryDto = categoryDtos.get(i - 1);
+            mvc.perform(post("/admin/categories")
+                            .content(mapper.writeValueAsString(categoryDto))
+                            .characterEncoding(StandardCharsets.UTF_8)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .accept(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.id", is((long) i), Long.class))
+                    .andExpect(jsonPath("$.name", is(categoryDto.getName())));
+        }
+    }
+
+    @Test
+    @Order(7)
+    @DisplayName("Creating Category with empty name")
+    public void test70() throws Exception {
+        NewCategoryDto newCategoryDto = new NewCategoryDto();
+        mvc.perform(post("/admin/categories")
+                        .content(mapper.writeValueAsString(newCategoryDto))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding(StandardCharsets.UTF_8))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @Order(7)
+    @DisplayName("Creating Category with blank name")
+    public void test71() throws Exception {
+        NewCategoryDto newCategoryDto = new NewCategoryDto("");
+        mvc.perform(post("/admin/categories")
+                        .content(mapper.writeValueAsString(newCategoryDto))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding(StandardCharsets.UTF_8))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @Order(7)
+    @DisplayName("Creating Category with conflict name")
+    public void test72() throws Exception {
+        NewCategoryDto newCategoryDto = new NewCategoryDto("Conflict");
+        mvc.perform(post("/admin/categories")
+                        .content(mapper.writeValueAsString(newCategoryDto))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding(StandardCharsets.UTF_8))
+                .andExpect(status().isCreated());
+        mvc.perform(post("/admin/categories")
+                        .content(mapper.writeValueAsString(newCategoryDto))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding(StandardCharsets.UTF_8))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    @Order(8)
+    @DisplayName("Updating Category")
+    public void test80() throws Exception {
+        NewCategoryDto newCategoryDto = new NewCategoryDto("Updated");
+        mvc.perform(patch("/admin/categories/6")
+                        .content(mapper.writeValueAsString(newCategoryDto))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name", is(newCategoryDto.getName())));
+    }
+
+    @Test
+    @Order(8)
+    @DisplayName("Updating Category that not exists")
+    public void test81() throws Exception {
+        NewCategoryDto newCategoryDto = new NewCategoryDto("Updated");
+        mvc.perform(patch("/admin/categories/777")
+                        .content(mapper.writeValueAsString(newCategoryDto))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @Order(9)
+    @DisplayName("Deleting Category")
+    public void test90() throws Exception {
+        mvc.perform(delete("/admin/categories/6"))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @Order(9)
+    @DisplayName("Deleting Category that not exists")
+    public void test91() throws Exception {
+        mvc.perform(delete("/admin/categories/777"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @Order(10)
+    @DisplayName("Creating 5 Events")
+    public void test100() throws Exception {
+        for (long i = 1L; i <= 5L; i++) {
+            String title = "event" + i;
+            String annotation = "This is annotation of event" + i;
+            String description = "This is description of event" + i;
+            String eventDate = LocalDateTime.now().plusDays(i).format(TIMESTAMP_FORMATTER);
+            NewEventDto newEventDto = new NewEventDto(
+                    annotation,
+                    i,
+                    description,
+                    eventDate,
+                    new Location(55.45, 65.33),
+                    true,
+                    5,
+                    true,
+                    title
+                    );
+            mvc.perform(post(String.format("/users/%s/events", i))
+                            .content(mapper.writeValueAsString(newEventDto))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .characterEncoding(StandardCharsets.UTF_8)
+                            .accept(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.id", is(i), Long.class))
+                    .andExpect(jsonPath("$.title", is(newEventDto.getTitle())));
+        }
     }
 }

@@ -1,6 +1,7 @@
 package ru.practicum.main.service.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,12 +19,14 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class AdminService {
+@Slf4j
+public class AdminUserService {
     private final UserRepository userRepository;
 
     public ResponseEntity<Object> createNewUser(NewUserRequest userRequest) {
         User createdUser = UserConverter.toUser(userRequest);
         createdUser = userRepository.save(createdUser);
+        log.info("Created new User: {}", createdUser);
         UserDto userDto = UserConverter.toUserDto(createdUser);
         return new ResponseEntity<>(userDto, HttpStatus.CREATED);
     }
@@ -33,6 +36,7 @@ public class AdminService {
             throw new EntityNotFoundException(String.format("User with id = %s not found", userId));
         }
         userRepository.deleteById(userId);
+        log.info("Deleted User with id: {userId}");
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 

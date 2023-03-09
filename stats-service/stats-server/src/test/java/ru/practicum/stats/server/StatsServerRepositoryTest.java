@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @DataJpaTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class StatsServerRepositoryTest {
     private final StatsServerRepository repository;
