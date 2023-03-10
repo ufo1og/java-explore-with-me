@@ -26,6 +26,8 @@ CREATE TABLE IF NOT EXISTS EVENTS (
     request_moderation BOOLEAN NOT NULL,
     initiator BIGINT NOT NULL,
     category BIGINT NOT NULL,
+    published BOOLEAN NOT NULL,
+    published_on TIMESTAMP,
     CONSTRAINT event_id_pk PRIMARY KEY (id),
     CONSTRAINT event_initiator_fk FOREIGN KEY (initiator) REFERENCES USERS (id),
     CONSTRAINT event_category_fk FOREIGN KEY (category) REFERENCES CATEGORIES (id),

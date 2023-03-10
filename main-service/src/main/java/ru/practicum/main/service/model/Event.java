@@ -38,4 +38,7 @@ public class Event {
     private Category category;
     @ManyToMany(mappedBy = "events")
     private Set<Compilation> compilations = new HashSet<>();
+    private Boolean published;
+    @Column(name = "published_on")
+    private LocalDateTime publishedOn;
 }

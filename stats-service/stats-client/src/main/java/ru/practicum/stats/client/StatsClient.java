@@ -32,7 +32,7 @@ public class StatsClient {
                 .block();
     }
 
-    public List<ViewStats> getHits(LocalDateTime start, LocalDateTime end, String[] uris, boolean unique) {
+    public List<ViewStats> getHits(LocalDateTime start, LocalDateTime end, List<String> uris, boolean unique) {
         StringBuilder requestBuilder = new StringBuilder("/stats?")
                 .append("start=").append(URLEncoder.encode(start.format(TIMESTAMP_FORMATTER), StandardCharsets.UTF_8))
                 .append("&end=").append(URLEncoder.encode(end.format(TIMESTAMP_FORMATTER), StandardCharsets.UTF_8));

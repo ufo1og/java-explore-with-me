@@ -14,6 +14,7 @@ import ru.practicum.main.service.dto.NewEventDto;
 import ru.practicum.main.service.dto.NewUserRequest;
 import ru.practicum.main.service.model.Location;
 import ru.practicum.stats.client.StatsClient;
+import ru.practicum.stats.dto.ViewStats;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
@@ -25,6 +26,7 @@ import java.util.List;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static ru.practicum.stats.dto.ConstantValues.TIMESTAMP_FORMATTER;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -380,9 +382,9 @@ public class MainServiceTest {
     }
 
     @Test
-    @Order(999)
+    @Order(777)
     @DisplayName("Creating 5 Events")
-    public void test999() throws Exception {
+    public void test7770() throws Exception {
         for (long i = 1L; i <= 5L; i++) {
             String title = "event" + i;
             String annotation = "This is annotation of event" + i;
@@ -408,5 +410,24 @@ public class MainServiceTest {
                     .andExpect(jsonPath("$.id", is(i), Long.class))
                     .andExpect(jsonPath("$.title", is(newEventDto.getTitle())));
         }
+    }
+
+    @Test
+    @Order(778)
+    @DisplayName("Getting events")
+    public void test7780() throws Exception {
+        List<ViewStats> viewStats = List.of(
+                new ViewStats("app", "/events/1", 5L),
+                new ViewStats("app", "/events/2", 2L),
+                new ViewStats("app", "/events/3", 7L),
+                new ViewStats("app", "/events/4", 11L),
+                new ViewStats("app", "/events/5", 9L)
+        );
+
+        when(statsClient.getHits(any(LocalDateTime.class), any(LocalDateTime.class), anyList(), anyBoolean()))
+                .thenReturn(viewStats);
+
+        mvc.perform(get("/users/1/events"))
+                .andExpect(status().isOk());
     }
 }
