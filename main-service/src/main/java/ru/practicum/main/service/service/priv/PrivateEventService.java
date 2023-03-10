@@ -2,7 +2,6 @@ package ru.practicum.main.service.service.priv;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,12 +15,10 @@ import ru.practicum.main.service.repository.CategoryRepository;
 import ru.practicum.main.service.repository.EventRepository;
 import ru.practicum.main.service.repository.UserRepository;
 import ru.practicum.main.service.utils.EventConverter;
-import ru.practicum.stats.client.StatsClient;
 
 import javax.persistence.EntityNotFoundException;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -41,7 +38,7 @@ public class PrivateEventService {
 //        List<EventShortDto> eventShortDtos = foundEvents.stream()
 //                .map(EventConverter::toEventShortDto)
 //                .collect(Collectors.toList());
-        return null;
+        return null; //TODO
     }
 
     public ResponseEntity<Object> createNewEvent(long userId, NewEventDto eventRequest) {
@@ -56,6 +53,6 @@ public class PrivateEventService {
         createdEvent = eventRepository.save(createdEvent);
         log.info("Created new Event: {}", createdEvent);
         EventShortDto eventShortDto = EventConverter.toEventShortDto(createdEvent, category, initiator);
-        return new ResponseEntity<>(eventShortDto, HttpStatus.CREATED);
+        return new ResponseEntity<>(eventShortDto, HttpStatus.CREATED); //TODO
     }
 }

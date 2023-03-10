@@ -6,12 +6,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.main.service.dto.NewCategoryDto;
 import ru.practicum.main.service.dto.NewEventDto;
 import ru.practicum.main.service.dto.NewUserRequest;
 import ru.practicum.main.service.model.Location;
+import ru.practicum.stats.client.StatsClient;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
@@ -33,6 +35,8 @@ public class MainServiceTest {
     private ObjectMapper mapper;
     @Autowired
     private MockMvc mvc;
+    @MockBean
+    StatsClient statsClient;
 
     @Test
     @Order(1)

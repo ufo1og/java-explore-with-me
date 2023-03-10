@@ -1,19 +1,20 @@
 package ru.practicum.main.service.controller.pub;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import ru.practicum.main.service.dto.EventFullDto;
+import ru.practicum.main.service.dto.EventShortDto;
 import ru.practicum.main.service.service.pub.PublicEventService;
 import ru.practicum.main.service.utils.EventSort;
 import ru.practicum.stats.client.StatsClient;
+import ru.practicum.stats.dto.EndpointHitDto;
 
 import javax.servlet.http.HttpServletRequest;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static ru.practicum.main.service.utils.PageRequestGetter.getPageRequest;
 import static ru.practicum.stats.dto.ConstantValues.TIMESTAMP_FORMATTER;
@@ -22,10 +23,9 @@ import static ru.practicum.stats.dto.ConstantValues.TIMESTAMP_FORMATTER;
 @RequestMapping("/events")
 @RequiredArgsConstructor
 public class PublicEventController {
-    @Value("${stats.server.url}")
-    private String statsServerUrl;
-    private StatsClient statsClient = new StatsClient(statsServerUrl);
+    private final StatsClient statsClient;
     private final PublicEventService publicEventService;
+    private final String APP_NAME = "emw-main-service";
 
     @GetMapping
     public ResponseEntity<Object> getAllEvents(
@@ -43,17 +43,37 @@ public class PublicEventController {
             throw new IllegalArgumentException("Parameter 'text' must not be blank");
         }
         EventSort eventSort = EventSort.valueOf(sort);
-        ResponseEntity<Object> result;
+        List<EventShortDto> result;
         if(rangeStart == null || rangeEnd == null) {
-            result = publicEventService.getAllFutureEvents(text, categories, paid, onlyAvailable, sort,
+            result = publicEventService.getAllFutureEvents(text, categories, paid, onlyAvailable, eventSort,
                     getPageRequest(from, size));
         } else {
             LocalDateTime start = LocalDateTime.parse(rangeStart, TIMESTAMP_FORMATTER);
             LocalDateTime end = LocalDateTime.parse(rangeEnd, TIMESTAMP_FORMATTER);
-            result = publicEventService.getAllEvents(text, categories, paid, start, end, onlyAvailable, sort,
+            result = publicEventService.getAllEvents(text, categories, paid, start, end, onlyAvailable, eventSort,
                     getPageRequest(from, size));
         }
-        statsClient.hitEvent() //TODO остановился здесь!
-        return result;
+        if (!result.isEmpty()) {
+            String uri = request.getRequestURI();
+            String ipAddress = request.getRemoteAddr();
+            String timestamp = LocalDateTime.now().format(TIMESTAMP_FORMATTER);
+            for (EventShortDto event : result) {
+                EndpointHitDto hit = new EndpointHitDto(APP_NAME, String.format("%s/%s", uri, event.getId()),
+                        ipAddress, timestamp);
+                statsClient.hitEvent(hit);
+            }
+        }
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Object> getEvent(@PathVariable long id, HttpServletRequest request) {
+        EventFullDto event = publicEventService.getEvent(id);
+        String uri = request.getRequestURI();
+        String ipAddress = request.getRemoteAddr();
+        String timestamp = LocalDateTime.now().format(TIMESTAMP_FORMATTER);
+        EndpointHitDto hit = new EndpointHitDto(APP_NAME, uri, ipAddress, timestamp);
+        statsClient.hitEvent(hit);
+        return new ResponseEntity<>(event, HttpStatus.OK);
     }
 }

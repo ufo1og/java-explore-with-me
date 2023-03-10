@@ -31,3 +31,29 @@ CREATE TABLE IF NOT EXISTS EVENTS (
     CONSTRAINT event_category_fk FOREIGN KEY (category) REFERENCES CATEGORIES (id),
     CONSTRAINT event_pl_positive CHECK (participant_limit >= 0)
 );
+
+CREATE TABLE IF NOT EXISTS PARTICIPATION_REQUESTS (
+    id BIGINT GENERATED ALWAYS AS IDENTITY NOT NULL,
+    event_id BIGINT NOT NULL,
+    requester_id BIGINT NOT NULL,
+    status VARCHAR(16) NOT NULL,
+    created TIMESTAMP NOT NULL,
+    CONSTRAINT pr_id_pk PRIMARY KEY (id),
+    CONSTRAINT pr_event_id_fk FOREIGN KEY (event_id) REFERENCES EVENTS (id),
+    CONSTRAINT pr_requester_id_fk FOREIGN KEY (requester_id) REFERENCES USERS (id)
+);
+
+CREATE TABLE IF NOT EXISTS COMPILATIONS (
+    id BIGINT GENERATED ALWAYS AS IDENTITY NOT NULL,
+    title VARCHAR(64) NOT NULL,
+    pinned BOOLEAN NOT NULL,
+    CONSTRAINT comp_id_pk PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS COMPILATION_EVENT (
+    compilation_id BIGINT NOT NULL,
+    event_id BIGINT NOT NULL,
+    CONSTRAINT ce_pk PRIMARY KEY (compilation_id, event_id),
+    CONSTRAINT ce_comp_id_fk FOREIGN KEY (compilation_id) REFERENCES COMPILATIONS (id),
+    CONSTRAINT ce_event_id_fk FOREIGN KEY (event_id) REFERENCES EVENTS (id)
+);
