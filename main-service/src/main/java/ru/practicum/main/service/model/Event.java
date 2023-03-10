@@ -8,6 +8,8 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "EVENTS")
@@ -34,4 +36,6 @@ public class Event {
     @ManyToOne
     @JoinColumn(name = "category", nullable = false)
     private Category category;
+    @ManyToMany(mappedBy = "events")
+    private Set<Compilation> compilations = new HashSet<>();
 }

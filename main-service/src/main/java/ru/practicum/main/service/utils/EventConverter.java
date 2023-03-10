@@ -1,14 +1,13 @@
 package ru.practicum.main.service.utils;
 
-import ru.practicum.main.service.dto.CategoryDto;
-import ru.practicum.main.service.dto.EventShortDto;
-import ru.practicum.main.service.dto.NewEventDto;
-import ru.practicum.main.service.dto.UserShortDto;
+import ru.practicum.main.service.dto.*;
 import ru.practicum.main.service.model.Category;
 import ru.practicum.main.service.model.Event;
 import ru.practicum.main.service.model.User;
+import ru.practicum.stats.dto.ViewStats;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 
 import static ru.practicum.stats.dto.ConstantValues.TIMESTAMP_FORMATTER;
 
@@ -26,7 +25,8 @@ public class EventConverter {
                 eventRequest.getParticipantLimit(),
                 eventRequest.isRequestModeration(),
                 user,
-                category
+                category,
+                Collections.emptySet()
         );
     }
 
@@ -37,12 +37,18 @@ public class EventConverter {
                 event.getId(),
                 event.getAnnotation(),
                 categoryDto,
-                0, /*TODO*/
+                0,
                 event.getEventDate().format(TIMESTAMP_FORMATTER),
                 userShortDto,
                 event.getPaid(),
                 event.getTitle(),
-                0 /*TODO*/
+                0
         );
     }
+
+//    public static EventShortDto toEventShortDto(Event event, ViewStats viewStats) {}
+
+//    public static EventFullDto toEventFullDto() {
+//
+//    }
 }
