@@ -3,6 +3,7 @@ package ru.practicum.main.service.utils;
 import ru.practicum.main.service.dto.*;
 import ru.practicum.main.service.model.Category;
 import ru.practicum.main.service.model.Event;
+import ru.practicum.main.service.model.Location;
 import ru.practicum.main.service.model.User;
 
 import java.time.LocalDateTime;
@@ -30,7 +31,9 @@ public class EventConverter {
                 category,
                 Collections.emptySet(),
                 false,
-                null
+                null,
+                EventState.SEND_TO_REVIEW,
+                LocalDateTime.now()
         );
     }
 
@@ -66,6 +69,35 @@ public class EventConverter {
                     event.getTitle(),
                     viewStats.get(eventId)
             );
+            result.add(eventShortDto);
+        }
+        return result;
+    }
+
+    public static List<EventFullDto> toEventFullDto(List<Event> events, Map<Long, Long> viewStats,
+                                                    Map<Long, Integer> confirmedRequests) {
+        List<EventFullDto> result = new ArrayList<>();
+        for (Event event : events) {
+            Long eventId = event.getId();
+            EventFullDto eventFullDto = new EventFullDto(
+                    eventId,
+                    event.getAnnotation(),
+                    CategoryConverter.toCategoryDto(event.getCategory()),
+                    confirmedRequests.get(eventId),
+                    event.getCreatedOn().format(TIMESTAMP_FORMATTER),
+                    event.getDescription(),
+                    event.getEventDate().format(TIMESTAMP_FORMATTER),
+                    UserConverter.toUserShortDto(event.getInitiator()),
+                    new Location(event.getLatitude(), event.getLongitude()),
+                    event.getPaid(),
+                    event.getParticipantLimit(),
+                    event.getPublishedOn().format(TIMESTAMP_FORMATTER),
+                    event.getRequestModeration(),
+                    event.getState().toString(),
+                    event.getTitle(),
+                    viewStats.get(eventId)
+            );
+            result.add(eventFullDto);
         }
         return result;
     }

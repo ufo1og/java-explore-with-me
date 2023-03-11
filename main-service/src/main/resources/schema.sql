@@ -28,6 +28,8 @@ CREATE TABLE IF NOT EXISTS EVENTS (
     category BIGINT NOT NULL,
     published BOOLEAN NOT NULL,
     published_on TIMESTAMP,
+    state VARCHAR(32) NOT NULL,
+    created_on TIMESTAMP NOT NULL,
     CONSTRAINT event_id_pk PRIMARY KEY (id),
     CONSTRAINT event_initiator_fk FOREIGN KEY (initiator) REFERENCES USERS (id),
     CONSTRAINT event_category_fk FOREIGN KEY (category) REFERENCES CATEGORIES (id),

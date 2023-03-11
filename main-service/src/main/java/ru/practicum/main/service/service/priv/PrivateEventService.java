@@ -13,15 +13,16 @@ import ru.practicum.main.service.model.Event;
 import ru.practicum.main.service.model.User;
 import ru.practicum.main.service.repository.CategoryRepository;
 import ru.practicum.main.service.repository.EventRepository;
+import ru.practicum.main.service.repository.ParticipationRequestRepository;
 import ru.practicum.main.service.repository.UserRepository;
 import ru.practicum.main.service.utils.EventConverter;
 import ru.practicum.stats.client.StatsClient;
-import ru.practicum.stats.dto.ViewStats;
 
 import javax.persistence.EntityNotFoundException;
-import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
+
+import static ru.practicum.main.service.utils.EventStatsCalculator.getEventConfirmedRequests;
+import static ru.practicum.main.service.utils.EventStatsCalculator.getEventViews;
 
 @Service
 @Slf4j
@@ -31,14 +32,15 @@ public class PrivateEventService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final StatsClient statsClient;
+    private final ParticipationRequestRepository participationRequestRepository;
 
     public ResponseEntity<Object> getAllEvents(long userId, Pageable pageable) {
         List<Event> foundEvents = eventRepository.getUserEvents(userId, pageable);
         if (foundEvents.isEmpty()) {
             return new ResponseEntity<>(Collections.emptyList(), HttpStatus.OK);
         }
-        Map<Long, Long> viewStats = getEventViews(foundEvents);
-        Map<Long, Integer> confirmedRequests = getEventConfirmedRequests(foundEvents);
+        Map<Long, Long> viewStats = getEventViews(foundEvents, statsClient);
+        Map<Long, Integer> confirmedRequests = getEventConfirmedRequests(foundEvents, participationRequestRepository);
         List<EventShortDto> eventShortDtos = EventConverter.toEventShortDto(foundEvents, viewStats, confirmedRequests);
         return new ResponseEntity<>(eventShortDtos, HttpStatus.OK);
     }
@@ -55,34 +57,6 @@ public class PrivateEventService {
         createdEvent = eventRepository.save(createdEvent);
         log.info("Created new Event: {}", createdEvent);
         EventShortDto eventShortDto = EventConverter.toEventShortDto(createdEvent, category, initiator);
-        return new ResponseEntity<>(eventShortDto, HttpStatus.CREATED); //TODO
-    }
-
-    private Map<Long, Long> getEventViews(List<Event> events) {
-        Map<Long, Long> result = events.stream().collect(Collectors.toMap(Event::getId, event -> 0L));
-        Optional<LocalDateTime> earliestPublishedDate = events.stream()
-                .map(Event::getPublishedOn)
-                .filter(Objects::nonNull)
-                .min(LocalDateTime::compareTo);
-        if (earliestPublishedDate.isPresent()) {
-            List<String> uris = events.stream()
-                    .map(event -> String.format("/events/%s", event.getId()))
-                    .collect(Collectors.toList());
-            LocalDateTime startRequestDate = earliestPublishedDate.get();
-            LocalDateTime endRequestDate = LocalDateTime.now();
-            List<ViewStats> viewStats = statsClient.getHits(startRequestDate, endRequestDate, uris, true);
-            for (ViewStats s : viewStats) {
-                String uri = s.getUri();
-                Long eventId = Long.parseLong(uri.substring(uri.lastIndexOf("/") + 1));
-                result.put(eventId, s.getHits());
-            }
-        }
-        return result;
-    }
-
-    private Map<Long, Integer> getEventConfirmedRequests(List<Event> events) {
-        Map<Long, Integer> result = events.stream().collect(Collectors.toMap(Event::getId, event -> 0));
-        //TODO
-        return result;
+        return new ResponseEntity<>(eventShortDto, HttpStatus.CREATED);
     }
 }

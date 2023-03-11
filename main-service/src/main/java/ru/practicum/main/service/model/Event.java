@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import ru.practicum.main.service.utils.EventState;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -41,4 +42,8 @@ public class Event {
     private Boolean published;
     @Column(name = "published_on")
     private LocalDateTime publishedOn;
+    @Enumerated(EnumType.STRING)
+    private EventState state;
+    @Column(name = "created_on")
+    private LocalDateTime createdOn;
 }
