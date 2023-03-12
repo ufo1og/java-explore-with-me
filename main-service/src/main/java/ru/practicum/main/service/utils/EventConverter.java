@@ -1,16 +1,20 @@
 package ru.practicum.main.service.utils;
 
 import ru.practicum.main.service.dto.*;
+import ru.practicum.main.service.exceptions.ForbiddenAccessException;
 import ru.practicum.main.service.model.Category;
 import ru.practicum.main.service.model.Event;
 import ru.practicum.main.service.model.Location;
 import ru.practicum.main.service.model.User;
+import ru.practicum.main.service.repository.CategoryRepository;
+import ru.practicum.main.service.repository.ParticipationRequestRepository;
+import ru.practicum.stats.client.StatsClient;
+import ru.practicum.stats.dto.ViewStats;
 
+import javax.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static ru.practicum.stats.dto.ConstantValues.TIMESTAMP_FORMATTER;
 
@@ -53,8 +57,10 @@ public class EventConverter {
         );
     }
 
-    public static List<EventShortDto> toEventShortDto(List<Event> events, Map<Long, Long> viewStats,
-                                                      Map<Long, Integer> confirmedRequests) {
+    public static List<EventShortDto> toEventShortDto(List<Event> events, StatsClient statsClient,
+                                                      ParticipationRequestRepository repository) {
+        Map<Long, Long> viewStats = getEventViews(events, statsClient);
+        Map<Long, Integer> confirmedRequests = getEventConfirmedRequests(events, repository);
         List<EventShortDto> result = new ArrayList<>();
         for (Event event : events) {
             Long eventId = event.getId();
@@ -74,8 +80,10 @@ public class EventConverter {
         return result;
     }
 
-    public static List<EventFullDto> toEventFullDto(List<Event> events, Map<Long, Long> viewStats,
-                                                    Map<Long, Integer> confirmedRequests) {
+    public static List<EventFullDto> toEventFullDto(List<Event> events, StatsClient statsClient,
+                                                    ParticipationRequestRepository repository) {
+        Map<Long, Long> viewStats = getEventViews(events, statsClient);
+        Map<Long, Integer> confirmedRequests = getEventConfirmedRequests(events, repository);
         List<EventFullDto> result = new ArrayList<>();
         for (Event event : events) {
             Long eventId = event.getId();
@@ -98,6 +106,85 @@ public class EventConverter {
                     viewStats.get(eventId)
             );
             result.add(eventFullDto);
+        }
+        return result;
+    }
+
+    public static Event makeUpdatedEvent(Event updatingEvent, UpdateEventAdminRequest request,
+                                         CategoryRepository categoryRepository) {
+        if (request.getAnnotation() != null) {
+            updatingEvent.setAnnotation(request.getAnnotation());
+        }
+        if (request.getCategory() != null) {
+            long categoryId = request.getCategory();
+            Category category = categoryRepository.findById(categoryId).orElseThrow(
+                    () -> new EntityNotFoundException(String.format("Category with id=%s not found", categoryId))
+            );
+            updatingEvent.setCategory(category);
+        }
+        if (request.getDescription() != null) {
+            updatingEvent.setDescription(request.getDescription());
+        }
+        if (request.getEventDate() != null) {
+            LocalDateTime eventDate = LocalDateTime.parse(request.getEventDate(), TIMESTAMP_FORMATTER);
+            updatingEvent.setEventDate(eventDate);
+        }
+        if (request.getLocation() != null) {
+            Location location = request.getLocation();
+            updatingEvent.setLatitude(location.getLat());
+            updatingEvent.setLongitude(location.getLon());
+        }
+        if (request.getPaid() != null) {
+            updatingEvent.setPaid(request.getPaid());
+        }
+        if (request.getParticipantLimit() != null) {
+            updatingEvent.setParticipantLimit(request.getParticipantLimit());
+        }
+        if (request.getRequestModeration() != null) {
+            updatingEvent.setRequestModeration(request.getRequestModeration());
+        }
+        if (request.getStateAction() != null) {
+            EventState state = EventState.valueOf(request.getStateAction());
+            if (state.equals(EventState.PUBLISH_EVENT) || state.equals(EventState.REJECT_EVENT)) {
+                updatingEvent.setState(state);
+            } else {
+                throw new ForbiddenAccessException("Admin cant set states except PUBLISH_EVENT and REJECT EVENT");
+            }
+        }
+        if (request.getTitle() != null) {
+            updatingEvent.setTitle(request.getTitle());
+        }
+        return updatingEvent;
+    }
+
+     private static Map<Long, Long> getEventViews(List<Event> events, StatsClient statsClient) {
+        Map<Long, Long> result = events.stream().collect(Collectors.toMap(Event::getId, event -> 0L));
+        Optional<LocalDateTime> earliestPublishedDate = events.stream()
+                .map(Event::getPublishedOn)
+                .filter(Objects::nonNull)
+                .min(LocalDateTime::compareTo);
+        if (earliestPublishedDate.isPresent()) {
+            List<String> uris = events.stream()
+                    .map(event -> String.format("/events/%s", event.getId()))
+                    .collect(Collectors.toList());
+            LocalDateTime startRequestDate = earliestPublishedDate.get();
+            LocalDateTime endRequestDate = LocalDateTime.now();
+            List<ViewStats> viewStats = statsClient.getHits(startRequestDate, endRequestDate, uris, true);
+            for (ViewStats s : viewStats) {
+                String uri = s.getUri();
+                Long eventId = Long.parseLong(uri.substring(uri.lastIndexOf("/") + 1));
+                result.put(eventId, s.getHits());
+            }
+        }
+        return result;
+    }
+
+    private static Map<Long, Integer> getEventConfirmedRequests(List<Event> events,
+                                                               ParticipationRequestRepository repository) {
+        Map<Long, Integer> result = events.stream().collect(Collectors.toMap(Event::getId, event -> 0));
+        List<EventAcceptedParticipations> acceptedRequests = repository.getConfirmedRequestsCount(result.keySet());
+        for (EventAcceptedParticipations eap : acceptedRequests) {
+            result.put(eap.getEventId(), eap.getAcceptedRequests().intValue());
         }
         return result;
     }

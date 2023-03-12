@@ -3,9 +3,12 @@ package ru.practicum.main.service.controller.priv;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.main.service.dto.EventRequestStatusUpdateRequest;
 import ru.practicum.main.service.dto.NewEventDto;
+import ru.practicum.main.service.dto.UpdateEventUserRequest;
 import ru.practicum.main.service.exceptions.ForbiddenEventDateException;
 import ru.practicum.main.service.service.priv.PrivateEventService;
+import ru.practicum.main.service.service.priv.PrivateRequestService;
 
 import javax.validation.Valid;
 import java.time.LocalDateTime;
@@ -18,6 +21,7 @@ import static ru.practicum.main.service.utils.PageRequestGetter.getPageRequest;
 @RequiredArgsConstructor
 public class PrivateEventController {
     private final PrivateEventService privateEventService;
+    private final PrivateRequestService privateRequestService;
 
     @GetMapping
     public ResponseEntity<Object> getAllEvents(@PathVariable long userId,
@@ -37,5 +41,25 @@ public class PrivateEventController {
         return privateEventService.createNewEvent(userId, eventRequest);
     }
 
+    @GetMapping("/{eventId}")
+    public ResponseEntity<Object> getUserEvent(@PathVariable long userId, @PathVariable long eventId) {
+        return privateEventService.getUserEvent(userId, eventId);
+    }
 
+    @PatchMapping("/{eventId}")
+    public ResponseEntity<Object> updateUserEvent(@PathVariable long userId, @PathVariable long eventId,
+                                                  @RequestBody UpdateEventUserRequest request) {
+        return privateEventService.updateUserEvent(userId, eventId, request);
+    }
+
+    @GetMapping("/{eventId}/requests")
+    public ResponseEntity<Object> getEventRequests(@PathVariable long userId, @PathVariable long eventId) {
+        return privateRequestService.getEventRequests(userId, eventId);
+    }
+
+    @PatchMapping("/{eventId}/requests")
+    public ResponseEntity<Object> changeRequestsStatus(@PathVariable long userId, @PathVariable long eventId,
+                                                       @RequestBody EventRequestStatusUpdateRequest request) {
+        return privateRequestService.changeRequestsStatus(userId, eventId, request);
+    }
 }

@@ -23,10 +23,6 @@ import ru.practicum.stats.client.StatsClient;
 import javax.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
-
-import static ru.practicum.main.service.utils.EventStatsCalculator.getEventConfirmedRequests;
-import static ru.practicum.main.service.utils.EventStatsCalculator.getEventViews;
 import static ru.practicum.stats.dto.ConstantValues.TIMESTAMP_FORMATTER;
 
 @Service
@@ -41,9 +37,8 @@ public class AdminEventService {
     public ResponseEntity<Object> findEvents(List<Long> users, List<EventState> states, List<Long> categories,
                                              LocalDateTime start, LocalDateTime end, PageRequest pageRequest) {
         List<Event> events = eventRepository.findEventsFiltered(users, states, categories, start, end, pageRequest);
-        Map<Long, Long> viewStats = getEventViews(events, statsClient);
-        Map<Long, Integer> confirmedRequests = getEventConfirmedRequests(events, participationRequestRepository);
-        List<EventFullDto> eventFullDtos = EventConverter.toEventFullDto(events, viewStats, confirmedRequests);
+        List<EventFullDto> eventFullDtos = EventConverter.toEventFullDto(events, statsClient,
+                participationRequestRepository);
         return new ResponseEntity<>(eventFullDtos, HttpStatus.OK);
     }
 
@@ -60,60 +55,11 @@ public class AdminEventService {
         if (updatingEvent.getPublished()) {
             throw new ForbiddenAccessException("No access. Cant update published Event");
         }
-        Event updatedEvent = makeUpdatedEvent(updatingEvent, request);
+        Event updatedEvent = EventConverter.makeUpdatedEvent(updatingEvent, request, categoryRepository);
         updatedEvent = eventRepository.save(updatedEvent);
         log.info("Updated Event: {}", updatedEvent);
-        Map<Long, Long> viewStats = getEventViews(List.of(updatedEvent), statsClient);
-        Map<Long, Integer> confirmedRequests = getEventConfirmedRequests(List.of(updatedEvent),
-                participationRequestRepository);
-        EventFullDto eventFullDto = EventConverter.toEventFullDto(List.of(updatedEvent), viewStats, confirmedRequests)
-                .get(0);
+        EventFullDto eventFullDto = EventConverter.toEventFullDto(List.of(updatedEvent), statsClient,
+                        participationRequestRepository).get(0);
         return new ResponseEntity<>(eventFullDto, HttpStatus.OK);
-    }
-
-    private Event makeUpdatedEvent(Event updatingEvent, UpdateEventAdminRequest request) {
-        if (request.getAnnotation() != null) {
-            updatingEvent.setAnnotation(request.getAnnotation());
-        }
-        if (request.getCategory() != null) {
-            long categoryId = request.getCategory();
-            Category category = categoryRepository.findById(categoryId).orElseThrow(
-                    () -> new EntityNotFoundException(String.format("Category with id=%s not found", categoryId))
-            );
-            updatingEvent.setCategory(category);
-        }
-        if (request.getDescription() != null) {
-            updatingEvent.setDescription(request.getDescription());
-        }
-        if (request.getEventDate() != null) {
-            LocalDateTime eventDate = LocalDateTime.parse(request.getEventDate(), TIMESTAMP_FORMATTER);
-            updatingEvent.setEventDate(eventDate);
-        }
-        if (request.getLocation() != null) {
-            Location location = request.getLocation();
-            updatingEvent.setLatitude(location.getLat());
-            updatingEvent.setLongitude(location.getLon());
-        }
-        if (request.getPaid() != null) {
-            updatingEvent.setPaid(request.getPaid());
-        }
-        if (request.getParticipantLimit() != null) {
-            updatingEvent.setParticipantLimit(request.getParticipantLimit());
-        }
-        if (request.getRequestModeration() != null) {
-            updatingEvent.setRequestModeration(request.getRequestModeration());
-        }
-        if (request.getStateAction() != null) {
-            EventState state = EventState.valueOf(request.getStateAction());
-            if (state.equals(EventState.PUBLISH_EVENT) || state.equals(EventState.REJECT_EVENT)) {
-                updatingEvent.setState(state);
-            } else {
-                throw new ForbiddenAccessException("Admin cant set states except PUBLISH_EVENT and REJECT EVENT");
-            }
-        }
-        if (request.getTitle() != null) {
-            updatingEvent.setTitle(request.getTitle());
-        }
-        return updatingEvent;
     }
 }

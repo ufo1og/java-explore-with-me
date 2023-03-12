@@ -26,6 +26,12 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     @Query(value = "select e from Event e " +
             "join fetch e.initiator " +
             "join fetch e.category " +
+            "where e.id = ?1 and e.initiator.id = ?2")
+    Optional<Event> findByIdAndInitiatorFetch(Long eventId, Long userId);
+
+    @Query(value = "select e from Event e " +
+            "join fetch e.initiator " +
+            "join fetch e.category " +
             "where e.initiator.id in ?1 " +
             "and e.state in ?2 " +
             "and e.category.id in ?3 " +

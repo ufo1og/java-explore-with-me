@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import ru.practicum.main.service.dto.EventRequestStatusUpdateRequest;
 import ru.practicum.main.service.dto.ParticipationRequestDto;
 import ru.practicum.main.service.exceptions.ForbiddenAccessException;
 import ru.practicum.main.service.model.Event;
@@ -18,6 +19,7 @@ import ru.practicum.main.service.utils.ParticipationStatus;
 
 import javax.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -55,7 +57,23 @@ public class PrivateRequestService {
         );
         request = participationRequestRepository.save(request);
         log.info("Created new ParticipationRequest: {}", request);
-        ParticipationRequestDto requestDto = ParticipationRequestConverter.participationRequestDto(request);
+        ParticipationRequestDto requestDto = ParticipationRequestConverter.toParticipationRequestDto(request);
         return new ResponseEntity<>(requestDto, HttpStatus.CREATED);
+    }
+
+    public ResponseEntity<Object> getEventRequests(long userId, long eventId) {
+        List<ParticipationRequest> requests = participationRequestRepository.findUserEventRequests(userId, eventId);
+        List<ParticipationRequestDto> requestDtos = ParticipationRequestConverter.toParticipationRequestDto(requests);
+        return new ResponseEntity<>(requestDtos, HttpStatus.OK);
+    }
+
+    public ResponseEntity<Object> changeRequestsStatus(long userId, long eventId,
+                                                       EventRequestStatusUpdateRequest request) {
+        Event event = eventRepository.findById(eventId).orElseThrow(
+                () -> new EntityNotFoundException(String.format("Event with id=%s not found", eventId))
+        );
+        List<ParticipationRequest> requests = participationRequestRepository.findUserEventRequests(userId, eventId);
+
+        return null; //TODO
     }
 }

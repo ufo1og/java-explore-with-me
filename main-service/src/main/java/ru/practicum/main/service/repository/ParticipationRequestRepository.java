@@ -23,4 +23,8 @@ public interface ParticipationRequestRepository extends JpaRepository<Participat
             "where pr.event = ?1 and pr.status = 'ACCEPTED' " +
             "group by pr.event")
     Integer getConfirmedRequestsCount(long eventId);
+
+    @Query("select pr from ParticipationRequest pr " +
+            "where pr.event.initiator.id = ?1 and pr.event = ?2")
+    List<ParticipationRequest> findUserEventRequests(Long userId, Long eventId);
 }
